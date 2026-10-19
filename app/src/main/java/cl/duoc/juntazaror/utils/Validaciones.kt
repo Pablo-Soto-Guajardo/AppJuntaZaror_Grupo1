@@ -9,7 +9,7 @@ object Validaciones {
 
     const val MONTO_MAXIMO = 10_000_000L
     const val DIAS_MAXIMOS_ANTICIPACION = 90L
-    
+
 
     fun validarNombre(nombre: String): String? = when {
         nombre.isBlank() -> "El nombre es obligatorio"
