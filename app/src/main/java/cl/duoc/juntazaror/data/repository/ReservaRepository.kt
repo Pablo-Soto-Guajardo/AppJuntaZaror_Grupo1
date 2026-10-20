@@ -21,3 +21,4 @@ class ReservaRepository(private val reservaDao: ReservaDao) {
 
     suspend fun eliminar(reserva: Reserva) = reservaDao.eliminar(reserva)
 }
+
