@@ -43,6 +43,11 @@ import cl.duoc.juntazaror.ui.components.TarjetaResumenFinanciero
 import cl.duoc.juntazaror.viewmodel.FinanzasViewModel
 import cl.duoc.juntazaror.viewmodel.MainViewModel
 
+/**
+ * Transparencia financiera: todos los perfiles ven el resumen y los movimientos.
+ * Solo Tesorería y Directiva ven el botón para registrar.
+ * Diseño adaptable con BoxWithConstraints: en pantallas anchas usa dos paneles.
+ */
 @Composable
 fun FinanzasScreen(finanzasViewModel: FinanzasViewModel, mainViewModel: MainViewModel) {
     val resumen by finanzasViewModel.resumen.collectAsState()
@@ -51,6 +56,7 @@ fun FinanzasScreen(finanzasViewModel: FinanzasViewModel, mainViewModel: MainView
     val puedeRegistrar by finanzasViewModel.puedeRegistrar.collectAsState()
     val mensaje by finanzasViewModel.mensaje.collectAsState()
 
+    // Al abrir la pantalla se leen los movimientos desde Room
     LaunchedEffect(Unit) { finanzasViewModel.cargarDatos() }
 
     val abrirDetalle: (Movimiento) -> Unit = { mainViewModel.navigateTo(Screen.DetalleMovimiento(it.id)) }
@@ -78,6 +84,7 @@ fun FinanzasScreen(finanzasViewModel: FinanzasViewModel, mainViewModel: MainView
                 .fillMaxSize()
         ) {
             if (maxWidth >= 700.dp) {
+                // ----- Pantalla ancha: panel de resumen | lista -----
                 Row(Modifier.fillMaxSize()) {
                     Column(
                         modifier = Modifier
@@ -96,7 +103,8 @@ fun FinanzasScreen(finanzasViewModel: FinanzasViewModel, mainViewModel: MainView
                         modifier = Modifier.weight(0.58f)
                     )
                 }
-            } else
+            } else {
+                // ----- Teléfono: todo en una sola lista -----
                 LazyColumn(
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),

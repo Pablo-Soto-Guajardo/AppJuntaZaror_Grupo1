@@ -3,46 +3,52 @@ package cl.duoc.juntazaror.data.model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+/** Un movimiento financiero puede ser un ingreso o un gasto. */
+enum class TipoMovimiento(val etiqueta: String) {
+    INGRESO("Ingreso"),
+    GASTO("Gasto")
+}
+
+/** Categorías de movimientos: cada una pertenece a un tipo (ingreso o gasto). */
+enum class CategoriaMovimiento(val etiqueta: String, val tipo: TipoMovimiento) {
+    ARRIENDO("Arriendo de dependencias", TipoMovimiento.INGRESO),
+    CUOTA_SOCIAL("Cuotas sociales", TipoMovimiento.INGRESO),
+    OTRO_INGRESO("Otro ingreso", TipoMovimiento.INGRESO),
+    LUZ("Consumo eléctrico", TipoMovimiento.GASTO),
+    AGUA("Consumo de agua", TipoMovimiento.GASTO),
+    GAS("Consumo de gas", TipoMovimiento.GASTO),
+    MANTENCION("Mantención y reparaciones", TipoMovimiento.GASTO),
+    OTRO_GASTO("Otro gasto", TipoMovimiento.GASTO);
+
+    companion object {
+        /** Devuelve solo las categorías que corresponden al tipo elegido. */
+        fun porTipo(tipo: TipoMovimiento): List<CategoriaMovimiento> =
+            entries.filter { it.tipo == tipo }
+    }
+}
+
 /**
- * Dependencias comunitarias que se pueden arrendar.
- * Capacidad y tarifa son valores FICTICIOS (restricción del caso).
+ * Tabla "movimientos" en Room.
+ * Los movimientos no se eliminan: así se mantiene la trazabilidad de la rendición de cuentas.
+ * comprobanteUri guarda la foto del comprobante (cámara o galería).
  */
-enum class Dependencia(val nombre: String, val capacidad: Int, val tarifaPorBloque: Long) {
-    SALON_PRINCIPAL("Salón principal", 80, 35000),
-    SALA_REUNIONES("Sala de reuniones", 20, 12000),
-    MULTICANCHA("Multicancha", 40, 18000)
-}
-
-/** Bloques horarios fijos: simplifican la verificación de disponibilidad y evitan choques. */
-enum class BloqueHorario(val etiqueta: String) {
-    MANANA("Mañana · 09:00 - 13:00"),
-    TARDE("Tarde · 14:00 - 18:00"),
-    NOCHE("Noche · 19:00 - 23:00")
-}
-
-/** Ciclo de vida de una solicitud de arriendo. */
-enum class EstadoReserva(val etiqueta: String) {
-    PENDIENTE("Pendiente"),
-    CONFIRMADA("Confirmada"),
-    RECHAZADA("Rechazada")
-}
-
-/**
- * Tabla "reservas" en Room.
- * La fecha se guarda como epochDay (días desde 1970-01-01) para poder
- * comparar y ordenar fácilmente en SQL.
- */
-@Entity(tableName = "reservas")
-data class Reserva(
+@Entity(tableName = "movimientos")
+data class Movimiento(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val usuarioId: Long,
-    val nombreSolicitante: String,
-    val dependencia: Dependencia,
-    val fechaEpochDay: Long,
-    val bloque: BloqueHorario,
-    val motivo: String,
-    val asistentes: Int,
+    val tipo: TipoMovimiento,
+    val categoria: CategoriaMovimiento,
     val monto: Long,
-    val estado: EstadoReserva = EstadoReserva.PENDIENTE,
-    val creadaEn: Long = System.currentTimeMillis()
+    val fechaEpochDay: Long,
+    val descripcion: String,
+    val comprobanteUri: String? = null,
+    val registradoPor: String,
+    val creadoEn: Long = System.currentTimeMillis()
 )
+
+/** Resumen calculado a partir de los movimientos (no se guarda en la BD). */
+data class ResumenFinanciero(
+    val totalIngresos: Long = 0,
+    val totalGastos: Long = 0
+) {
+    val saldo: Long get() = totalIngresos - totalGastos
+}
