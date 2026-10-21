@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AppJuntaZaror_GrupoX1"
+rootProject.name = "AppJuntaZaror_Grupo1"
 include(":app")
